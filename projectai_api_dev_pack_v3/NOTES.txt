@@ -1,0 +1,10 @@
+If your project does not use the @/ alias, change imports like "@/lib/prisma" to relative paths.
+
+Typical fix:
+- Update tsconfig.json paths:
+  {
+    "compilerOptions": {
+      "baseUrl": ".",
+      "paths": { "@/*": ["./*"] }
+    }
+  }

@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+provider = "sqlite"
+url = env("DATABASE_URL")
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+model Organization {
+  id        Int       @id @default(autoincrement())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  orgUsers  OrgUser[]
+  projects  Project[]
+  tasks     Task[]
+
+  @@index([name])
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  name      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  orgUsers  OrgUser[]
+}
+
+model OrgUser {
+  id        Int       @id @default(autoincrement())
+  orgId     Int
+  userId    Int
+  role      String    @default("member")
+  createdAt DateTime  @default(now())
+
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId])
+  @@index([userId])
+  @@index([orgId])
+}
+
+model Project {
+  id          Int       @id @default(autoincrement())
+  orgId       Int
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+
+  @@index([orgId])
+  @@unique([orgId, id])
+}
+
+model Task {
+  id          Int       @id @default(autoincrement())
+  orgId       Int
+  projectId   Int
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  position    Int        @default(0)
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  project     Project      @relation(fields: [orgId, projectId], references: [orgId, id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@index([projectId])
+  @@index([orgId, projectId])
+  @@index([orgId, status])
+}

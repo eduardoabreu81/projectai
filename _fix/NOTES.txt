@@ -1,0 +1,20 @@
+Core logic (why Next.js 16 broke your types)
+- In Next.js 16 App Router, dynamic route handler context.params is typed as a Promise.
+- So you must:
+  - Type it as: context: { params: Promise<{ orgId: string }> }
+  - And read it like: const { orgId } = await context.params;
+
+Rule of thumb
+- Static routes (no [param]) can keep: GET(req: NextRequest)
+- Dynamic routes ([id]) should use:
+    export async function GET(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+      const { id } = await context.params;
+    }
+
+Quick grep for old patterns:
+  grep -RIn "type Ctx" app/api | head
+  grep -RIn "ctx:\s*Ctx" app/api | head
+
+After edits:
+  rm -rf .next
+  npm run build
